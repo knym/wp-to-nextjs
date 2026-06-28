@@ -24,12 +24,24 @@ WordPress (WXR エクスポート) を Next.js + MDX に移行するスクリプ
 ```
 your-project/
 ├── wp-to-nextjs/          ← このリポジトリ（scripts として clone する）
-├── wordpress-export/      ← WXR ファイルを置く（git 管理外）
-│   └── export.xml
+├── data-WP/               ← WordPress エクスポートを置く（git 管理外・絶対に公開しない）
+│   └── export.xml         ← WXR ファイル（管理画面からダウンロード）
+├── data-GSC/              ← Search Console データを置く（git 管理外・絶対に公開しない）
+│   └── pages.csv          ← ページ別クリック数 CSV（GSC からエクスポート）
 └── your-nextjs-app/       ← 移行先の Next.js プロジェクト
     ├── content/posts/
     └── public/img/
 ```
+
+> **注意:** `data-WP/` と `data-GSC/` は個人情報・アクセスデータを含みます。`.gitignore` に追加して絶対に git 管理しないでください。
+
+### WXR ファイルの取得方法
+
+WordPress 管理画面 → ツール → エクスポート → 投稿 → 「エクスポートファイルをダウンロード」
+
+### GSC CSV の取得方法
+
+Search Console → 検索パフォーマンス → ページ → クリック数で降順ソート → エクスポート → CSV
 
 ## セットアップ
 

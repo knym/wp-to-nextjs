@@ -1,8 +1,14 @@
 node_modules/
+
+# WordPress エクスポート・GSC データ（個人情報を含む）
+../data-WP/
+../data-GSC/
+*.xml
+*.csv
+
+# スクリプト生成データ（サイト固有情報を含む）
 posts-full.json
 posts-list.json
 image-map.json
 redirects-output.json
 target-slugs.json
-*.xml
-*.csv
