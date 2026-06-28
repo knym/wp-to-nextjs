@@ -1,0 +1,18 @@
+{
+  "name": "knym-wp-migration-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "parse": "node parse-wxr.mjs",
+    "images": "node download-images.mjs",
+    "convert": "node convert-to-mdx.mjs",
+    "redirects": "node generate-redirects.mjs"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "slugify": "^1.6.9",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2",
+    "xml2js": "^0.6.2"
+  }
+}
