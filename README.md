@@ -23,37 +23,39 @@ WordPress (WXR エクスポート) を Next.js + MDX に移行するスクリプ
 
 ```
 your-project/
-├── wp-to-nextjs/          ← このリポジトリ（scripts として clone する）
-├── data-WP/               ← WordPress エクスポートを置く（git 管理外・絶対に公開しない）
-│   └── export.xml         ← WXR ファイル（管理画面からダウンロード）
-├── data-GSC/              ← Search Console データを置く（git 管理外・絶対に公開しない）
-│   └── pages.csv          ← ページ別クリック数 CSV（GSC からエクスポート）
+├── wp-to-nextjs/          ← このリポジトリ
+├── data-WP/               ← WXR ファイルを置く（git 管理外・公開禁止）
+│   └── export.xml
+├── data-GSC/              ← GSC データを置く（git 管理外・公開禁止）
+│   └── pages.csv
 └── your-nextjs-app/       ← 移行先の Next.js プロジェクト
     ├── content/posts/
     └── public/img/
 ```
 
-> **注意:** `data-WP/` と `data-GSC/` は個人情報・アクセスデータを含みます。`.gitignore` に追加して絶対に git 管理しないでください。
+> `data-WP/` と `data-GSC/` は個人情報・アクセスデータを含みます。絶対に git 管理しないでください。
 
-### WXR ファイルの取得方法
+### WXR ファイルの取得
 
-WordPress 管理画面 → ツール → エクスポート → 投稿 → 「エクスポートファイルをダウンロード」
+WordPress 管理画面 → ツール → エクスポート → 投稿 → 「エクスポートファイルをダウンロード」  
+→ `data-WP/export.xml` として保存
 
-### GSC CSV の取得方法
+### GSC CSV の取得
 
-Search Console → 検索パフォーマンス → ページ → クリック数で降順ソート → エクスポート → CSV
+Search Console → 検索パフォーマンス → ページ → クリック数で降順ソート → エクスポート → CSV  
+→ `data-GSC/pages.csv` として保存
 
 ## セットアップ
 
 ```bash
-git clone https://github.com/knym/wp-to-nextjs.git scripts
-cd scripts
+git clone https://github.com/knym/wp-to-nextjs.git
+cd wp-to-nextjs
 npm install
 ```
 
 ## 設定
 
-各スクリプトの上部に `CONFIG` セクションがあります。環境変数または直接編集で変更してください。
+各スクリプトの上部に `CONFIG` セクションがあります。環境変数で上書きできます。
 
 | 変数 | デフォルト | 説明 |
 |---|---|---|
@@ -62,35 +64,31 @@ npm install
 | `MDX_DIR` | `../your-nextjs-app/content/posts/` | MDX の出力先 |
 
 ```bash
-# 例: 環境変数で指定
+# 例
 SITE_URL=https://yoursite.com IMG_DIR=../myapp/public/img/ node download-images.mjs
 ```
 
 ## 実行手順
 
-### 事前準備
+### Step 1: WXR を解析して記事リストを生成
 
-1. WordPress 管理画面 → ツール → エクスポート → 投稿 → XML をダウンロード
-2. `wordpress-export/export.xml` として保存
-3. GSC の検索パフォーマンス CSV と照合し、移行する記事のスラッグを決定
-4. `target-slugs.json` を作成
+```bash
+node parse-wxr.mjs ../data-WP/export.xml
+```
+
+`posts-list.json`（タイトル・スラッグ・日付の一覧）と `posts-full.json`（本文入り・変換用）を生成します。
+
+### Step 2: 移行対象を決めて target-slugs.json を作成
+
+`posts-list.json` を `data-GSC/pages.csv` と照らし合わせ、クリック数の多い記事を移行対象に選びます。
 
 ```json
 ["post-slug-a", "post-slug-b", "post-slug-c"]
 ```
 
-### Step 1: WXR を解析
+→ `target-slugs.json` として保存
 
-```bash
-node parse-wxr.mjs
-# または WXR ファイルのパスを引数で渡す
-node parse-wxr.mjs ../wordpress-export/export.xml
-```
-
-`posts-list.json`（一覧確認用）と `posts-full.json`（変換用）を生成します。
-`posts-list.json` を GSC の CSV と照らし合わせて `target-slugs.json` を確定してください。
-
-### Step 2: 画像をダウンロード
+### Step 3: 画像をダウンロード
 
 ```bash
 SITE_URL=https://yoursite.com node download-images.mjs
@@ -98,7 +96,7 @@ SITE_URL=https://yoursite.com node download-images.mjs
 
 `public/img/` に画像を保存し、`image-map.json`（WordPress URL → ローカルパスの対応表）を生成します。
 
-### Step 3: MDX に変換
+### Step 4: MDX に変換
 
 ```bash
 node convert-to-mdx.mjs
@@ -112,7 +110,7 @@ node convert-to-mdx.mjs
 - コードブロックの言語指定（` ```bash ` など）が正しいか
 - 画像パスが `/img/xxx` になっているか
 
-### Step 4: リダイレクト設定を生成
+### Step 5: リダイレクト設定を生成
 
 ```bash
 node generate-redirects.mjs
@@ -132,22 +130,12 @@ const nextConfig = {
 };
 ```
 
-### Step 5: ビルド確認
+### Step 6: ビルド確認
 
 ```bash
 cd ../your-nextjs-app
 pnpm build
 ```
-
-## .gitignore について
-
-以下は個人情報・サイト固有データを含むため git 管理外にしています：
-
-- `posts-full.json` — 記事本文（WordPress の全コンテンツ）
-- `posts-list.json` — 記事一覧（タイトル・スラッグ等）
-- `image-map.json` — 画像 URL マッピング
-- `redirects-output.json` — 生成されたリダイレクト設定
-- `target-slugs.json` — 移行対象スラッグリスト
 
 ## 関連記事
 
