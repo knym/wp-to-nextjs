@@ -29,8 +29,8 @@ your-project/
 ├── data-GSC/              ← GSC データを置く（git 管理外・公開禁止）
 │   └── pages.csv
 └── your-nextjs-app/       ← 移行先の Next.js プロジェクト
-    ├── content/posts/
-    └── public/img/
+    ├── content/posts/     ← 変換された MDX 記事ファイルの出力先
+    └── public/img/        ← ダウンロードした画像の保存先
 ```
 
 > `data-WP/` と `data-GSC/` は個人情報・アクセスデータを含みます。絶対に git 管理しないでください。
